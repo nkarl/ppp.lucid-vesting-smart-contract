@@ -7,12 +7,10 @@ import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
 //import './bootstrap-datetimepicker.min.css';
 import * as L from 'lucid-cardano';
-import * as dotenv from 'dotenv';
+import * as Dotenv from 'dotenv';
+import * as AppUtils from './utils';
 
-import * as utils from './utils.js';
-import * as SetupUI from './setup-ui.js';
-
-dotenv.config({
+Dotenv.config({
     path: process.cwd() + "./.env"
 });
 
@@ -32,7 +30,7 @@ const VestingDatum = L.Data.Object({
 });
 
 /**
- * Connects the Nami wallet.
+ * NOTE: Connects the Nami wallet.
  */
 async function connectNamiWallet() {
     const namiWallet = window.cardano.nami;
@@ -53,38 +51,106 @@ async function connectNamiWallet() {
 }
 
 /**
- * Loads the Vesting Application UI.
+ * NOTE: Loads the Vesting Application UI.
  */
 async function loadApp(wallet, contractAddress, Datum) {
-    const walletData = await SetupUI.queryWalletData(wallet);
-    const vestingUTxOs = await SetupUI.getVestingUTxOs(contractAddress, Datum);
-    const status = { ...walletData, vestingUTxOs: vestingUTxOs };
+    const walletDetails = await AppUtils.queryWalletDetails(wallet);
+    const vestingUTxOs = await AppUtils.getVestingUTxOs(contractAddress, Datum);
+    const status = { ...walletDetails, vestingUTxOs: vestingUTxOs };
 
     const cardanoPKH = document.getElementById('cardanoPKH');
-    utils.removeChildren(cardanoPKH);
+    AppUtils.removeChildren(cardanoPKH);
     cardanoPKH.appendChild(document.createTextNode(status.cardanoPKH));
 
     const cardanoBalance = document.getElementById('cardanoBalance');
     const ada = Number(status.cardanoBalance) / 1_000_000;
-    utils.removeChildren(cardanoBalance);
+    AppUtils.removeChildren(cardanoBalance);
     cardanoBalance.appendChild(document.createTextNode(ada));
 
     const vestingUTxOsTable = document.getElementById('vestingUTxOsTable');
-    utils.removeChildren(vestingUTxOsTable);
+    AppUtils.removeChildren(vestingUTxOsTable);
 
     // generates the UTxOs table for the Tx at that contract address.
     for (const x of status.vestingUTxOs) {
         const tr = document.createElement('tr');
         vestingUTxOsTable.appendChild(tr);
 
-        utils.addCell(tr, x.utxo.txHash + '#' + x.utxo.outputIndex, true);
-        utils.addCell(tr, x.datum.stakeholder, true);
-        utils.addCell(tr, x.utxo.assets.lovelace);
-        utils.addCell(tr, new Date(Number(x.datum.deadline)));
+        AppUtils.addCell(tr, x.utxo.txHash + '#' + x.utxo.outputIndex, true);
+        AppUtils.addCell(tr, x.datum.stakeholder, true);
+        AppUtils.addCell(tr, x.utxo.assets.lovelace);
+        AppUtils.addCell(tr, new Date(Number(x.datum.deadline)));
     }
 }
 
-//// NOTE: [x] connect wallet
+/**
+ * NOTE: VESTING
+ */
+async function onVest() {
+    const nodeStakeholder = document.getElementById('vestStakeholderText');
+    const stakeholder = nodeStakeholder.value;
+    // console.log(stakeholder);
+    const nodeAmount = document.getElementById('vestAmountText');
+    const amount = BigInt(parseInt(nodeAmount.value));
+    // console.log(amount);
+    const nodeDeadline = document.getElementById('vestDeadlineText');
+    const deadline = BigInt(Date.parse(nodeDeadline.value));
+    // console.log(deadline);
+
+    const plutusDatum = {
+        stakeholder: stakeholder,
+        deadline: deadline
+    }
+
+    const cborDatum = L.Data.to(plutusDatum, VestingDatum);
+    const tx =
+        await lucid
+            .newTx()
+            .payToContract(
+                vestingAddress,
+                { inline: cborDatum },
+                { lovelace: amount })
+            .complete();
+
+    AppUtils.signAndSubmitCardanoTx(tx);
+
+    beneficiaryNode.value = "";
+    nodeAmount.value = "";
+    nodeDeadline.value = "";
+}
+
+/**
+ * NOTE: CLAIMING
+ */
+async function onClaim() {
+    const cardanoPKH = await AppUtils.getCardanoPKH(wallet);
+
+    const nodeReference = document.getElementById('claimReferenceText');
+    const refTx = nodeReference.value;
+
+    const utxo = await AppUtils.findUTxO(refTx, vestingAddress, VestingDatum);
+    if (utxo) {
+        const tx =
+            await lucid
+                .newTx()
+                .collectFrom(
+                    [utxo.utxo],
+                    L.Data.to(new L.Constr(0, [])))
+                .attachSpendingValidator(vestingScript)
+                .addSignerKey(cardanoPKH)
+                .validFrom(Number(utxo.datum.deadline))
+                .complete();
+
+        AppUtils.signAndSubmitCardanoTx(tx);
+    } else {
+        console.log("UTxO not found");
+    }
+
+    nodeReference.value = "";
+}
+
+/**
+ * NOTE: App Run.
+ */
 window.L = L;
 window.lucid = await connectNamiWallet();
 // console.log("show window.lucid object with Nami wallet enabled");
@@ -93,5 +159,20 @@ window.lucid = await connectNamiWallet();
 const wallet = window.lucid.wallet;
 const vestingAddress = lucid.utils.validatorToAddress(vestingScript);
 
-//// NOTE: [x] load the app UI
 loadApp(wallet, vestingAddress, VestingDatum);
+
+
+/**
+ * NOTE: Additional event listeners.
+ */
+document
+    .getElementById("vestButton")
+    .addEventListener("click", onVest);
+document
+    .getElementById("claimButton")
+    .addEventListener("click", onClaim);
+document
+    .getElementById("vestDeadlineText")
+    .addEventListener("change",
+        () => document.getElementById('vestDeadlineText').style.color = "black");
+//document.getElementById('cardanoPKHButton').addEventListener("click", () => onCopy("cardanoPKH"));

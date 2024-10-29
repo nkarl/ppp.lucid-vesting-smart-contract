@@ -42,6 +42,12 @@
             border-radius: 0.5em;
             transform: scale(1.50);
         }
+
+        #vestDeadlineText {
+            color: silver;
+            opacity: 0.5;
+        }
+
         /*
         td:has(p[id^='uid_']) {
             transition: all 0.10s ease-in-out;
@@ -58,59 +64,113 @@
 
 <body>
 
-    <div class="container-fluid d-flex flex-column justify-content-between">
+    <div class="container-fluid d-flex flex-column">
         <!-- Upper Div -->
-        <div class="container mt-3">
-            <table class="table table-hover">
-
-                <thead>
-                    <tr>
-                        <th>Cardano PubKeyHash</th>
-                        <th class="text-end">Cardano Balance (ADA)</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr>
-                        <td id="cardanoPKH"></td>
-                        <td id="cardanoBalance" class="text-end"></td>
-                    </tr>
-                </tbody>
-
-            </table>
-        </div>
-
-        <!-- Lower Div -->
-        <div class="container-fluid mt-3 d-flex">
-            <!--<div class="mt-3 d-flex">-->
-
-            <!--<div class="col-3 border">-->
-            <div class="border">
-                <ul>
-                    <li>Vesting</li>
-                    <li>Claiming</li>
-                </ul>
-            </div>
-
-            <!--<div class="col-9 border container">-->
-            <div class="border container-fluid">
-                <table id="utxosTable" class="table table-sm table-hover table-bordered">
-                    <caption>UTxO's on Cardano</caption>
+        <div class="row">
+            <div class="col">
+                <table class="table table-hover container mt-3">
                     <thead>
                         <tr>
-                            <th>Ref</th>
-                            <th>Stakeholder</th>
-                            <th>ADA</th>
-                            <th>Deadline</th>
+                            <th class="col-6">PubKeyHash</th>
+                            <th class="col-2">Balance (ADA)</th>
                         </tr>
                     </thead>
-                    <tbody id="vestingUTxOsTable">
 
+                    <tbody>
+                        <tr>
+                            <td class="col-6" id="cardanoPKH"></td>
+                            <td class="col-2" id="cardanoBalance"></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
+        </div>
 
-            <!--</div>-->
+        <!-- Lower Div -->
+        <div class="row">
+            <div class="col-4">
+                <div class="accordion" id="actions">
+
+                    <!-- Vest panel -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingVest">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#vest" aria-expanded="true" aria-controls="vest">
+                                Vest
+                            </button>
+                        </h2>
+
+                        <div id="vest" class="accordion-collapse collapse show" aria-labelledby="headingVest"
+                            data-bs-parent="#actions">
+                            <div class="accordion-body">
+                                <label for="vestStakeholderText" class="form-label">Stakeholder</label>
+                                <input type="text" class="form-control form-control-sm" id="vestStakeholderText" />
+                                <label for="vestAmountText" class="form-label">Amount (lovelace)</label>
+                                <input type="number" class="form-control form-control-sm" id="vestAmountText" />
+                                <label for="vestDeadlineText" class="form-label">Deadline</label>
+                                <input type="datetime-local" class="form-control form-control-sm"
+                                    id="vestDeadlineText" />
+                                <button class="btn btn-primary" type="button" id="vestButton">Vest</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Claim panel -->
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingClaim">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#claim" aria-expanded="false" aria-controls="claim">
+                                Claim
+                            </button>
+                        </h2>
+                        <div id="claim" class="accordion-collapse collapse" aria-labelledby="headingClaim"
+                            data-bs-parent="#actions">
+                            <div class="accordion-body">
+                                <label for="claimReferenceText" class="form-label">Reference</label>
+                                <input type="text" class="form-control form-control-sm" id="claimReferenceText" />
+                                <button class="btn btn-primary" type="button" id="claimButton">Claim</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-8">
+                <div class="container-fluid">
+                    <table id="utxosTable" class="table table-sm table-hover table-bordered">
+                        <caption>UTxO's on Cardano</caption>
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Stakeholder</th>
+                                <th>ADA</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vestingUTxOsTable">
+
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <table class="table table-sm table-bordered">
+                    <caption>Cardano transactions</caption>
+                    <thead>
+                        <tr>
+                            <th>Completed Transaction Hash</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completedTxTable">
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -118,6 +178,7 @@
         integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
+    <!--<script type="text/javascript" src="bootstrap-datetimepicker.min.js"></script>-->
 </body>
 
 </html>
