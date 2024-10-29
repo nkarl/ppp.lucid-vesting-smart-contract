@@ -23,11 +23,6 @@ module.exports = {
             title: 'Vesting',
             template: './src/index.html'
         }),
-        new CopyWebpackPlugin({
-            patterns: [{
-                from: 'static'
-            }]
-        }),
         new NodePolyfillPlugin(),
         new ProvidePlugin({
             process: 'process/browser.js'
