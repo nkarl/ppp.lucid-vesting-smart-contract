@@ -1,21 +1,18 @@
-This is a rewrite of the vesting smart contract application which is Week03's use case demo in the [Plutus Pioneer Program](https://iog-academy.gitbook.io/plutus-pioneers-program-fourth-cohort/) (PPP).
+This is a rewrite of the vesting smart contract app in Week03 of the [Plutus Pioneer Program](https://iog-academy.gitbook.io/plutus-pioneers-program-fourth-cohort/) (PPP).
 
-This smart contract demonstrate how to connect the following components into a simple application:
+This app demonstrates how to connect the following components:
 
-1. a 3rd-party API that provides wallet integration ([Lucid](https://lucid.spacebudz.io/) via a chromimum-based extension).
-2. a simple application UI based on JavaScript + Webpack + Bootstrap
+1. wallet integration between the [Lucid API](https://lucid.spacebudz.io/) with a chromimum-based Nami wallet extension.
+2. a simple UI written in JavaScript + Webpack + Bootstrap
 
 
 ### Aim
 
-This rewrite's largest aim is for me to develop a mental model for a smart contract use case. This will be a good reference for future smart contracts and use cases.
+This rewrite largely aims to help me develop a mental model for a smart contract use case
 
-This rewrite also aim to decouple many functions where possible. For example, actions for setting up wallet should exist dependently of the actions that setting up the app UI.
+This rewrite also decouples many functions where possible. For example, actions for setting up wallet should exist independently of the actions for setting up the UI. The original code was tightly couple, all functions were chained together as a single contiguous unit, which is difficult to read and debug.
 
-This rewrite also helps serve as a practical example for Bootstrap and Webpack.
-
-Another rewrite is planned. This second rewrite aims to translate the application to TypeScript for better defined data types and interfaces.
-
+This also serves as an opportunity to learn a little more about Bootstrap and Webpack. I also updated packages to latest versions and corrected problems with dependencies and Webpack configuration.
 
 ### Run It
 

@@ -5,10 +5,9 @@ if (!navigator.userAgent.includes('Chrome')) {
 
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-//import './bootstrap-datetimepicker.min.css';
 import * as L from 'lucid-cardano';
 import * as Dotenv from 'dotenv';
-import * as AppUtils from './utils';
+import * as Utils from './utils';
 
 Dotenv.config({
     path: process.cwd() + "./.env"
@@ -54,31 +53,31 @@ async function connectNamiWallet() {
  * NOTE: Loads the Vesting Application UI.
  */
 async function loadApp(wallet, contractAddress, Datum) {
-    const walletDetails = await AppUtils.queryWalletDetails(wallet);
-    const vestingUTxOs = await AppUtils.getVestingUTxOs(contractAddress, Datum);
+    const walletDetails = await Utils.queryWalletDetails(wallet);
+    const vestingUTxOs = await Utils.getVestingUTxOs(contractAddress, Datum);
     const status = { ...walletDetails, vestingUTxOs: vestingUTxOs };
 
     const cardanoPKH = document.getElementById('cardanoPKH');
-    AppUtils.removeChildren(cardanoPKH);
+    Utils.removeChildren(cardanoPKH);
     cardanoPKH.appendChild(document.createTextNode(status.cardanoPKH));
 
     const cardanoBalance = document.getElementById('cardanoBalance');
     const ada = Number(status.cardanoBalance) / 1_000_000;
-    AppUtils.removeChildren(cardanoBalance);
+    Utils.removeChildren(cardanoBalance);
     cardanoBalance.appendChild(document.createTextNode(ada));
 
     const vestingUTxOsTable = document.getElementById('vestingUTxOsTable');
-    AppUtils.removeChildren(vestingUTxOsTable);
+    Utils.removeChildren(vestingUTxOsTable);
 
     // generates the UTxOs table for the Tx at that contract address.
     for (const x of status.vestingUTxOs) {
         const tr = document.createElement('tr');
         vestingUTxOsTable.appendChild(tr);
 
-        AppUtils.addCell(tr, x.utxo.txHash + '#' + x.utxo.outputIndex, true);
-        AppUtils.addCell(tr, x.datum.stakeholder, true);
-        AppUtils.addCell(tr, x.utxo.assets.lovelace);
-        AppUtils.addCell(tr, new Date(Number(x.datum.deadline)));
+        Utils.addCell(tr, x.utxo.txHash + '#' + x.utxo.outputIndex, true);
+        Utils.addCell(tr, x.datum.stakeholder, true);
+        Utils.addCell(tr, x.utxo.assets.lovelace);
+        Utils.addCell(tr, new Date(Number(x.datum.deadline)));
     }
 }
 
@@ -111,7 +110,7 @@ async function onVest() {
                 { lovelace: amount })
             .complete();
 
-    AppUtils.signAndSubmitCardanoTx(tx);
+    Utils.signAndSubmitCardanoTx(tx);
 
     beneficiaryNode.value = "";
     nodeAmount.value = "";
@@ -122,12 +121,12 @@ async function onVest() {
  * NOTE: CLAIMING
  */
 async function onClaim() {
-    const cardanoPKH = await AppUtils.getCardanoPKH(wallet);
+    const cardanoPKH = await Utils.getCardanoPKH(wallet);
 
     const nodeReference = document.getElementById('claimReferenceText');
     const refTx = nodeReference.value;
 
-    const utxo = await AppUtils.findUTxO(refTx, vestingAddress, VestingDatum);
+    const utxo = await Utils.findUTxO(refTx, vestingAddress, VestingDatum);
     if (utxo) {
         const tx =
             await lucid
@@ -140,7 +139,7 @@ async function onClaim() {
                 .validFrom(Number(utxo.datum.deadline))
                 .complete();
 
-        AppUtils.signAndSubmitCardanoTx(tx);
+        Utils.signAndSubmitCardanoTx(tx);
     } else {
         console.log("UTxO not found");
     }
