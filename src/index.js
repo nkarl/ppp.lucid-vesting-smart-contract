@@ -36,10 +36,16 @@ async function connectToNami() {
     const nami = W.cardano.nami;
     /* DEBUG */ console.log("show nami API object", nami)
     if (!nami) {
+        alert("The Nami wallet is not found. Consider installing the Chrome extension.");
         setTimeout(connectToNami);
+        //throw new Error ("No Nami wallet found.");
     } else {
-        const api = await nami.enable();
-        /* DEBUG */ console.log("show L.WalletApi enabled", api);
+        const namiApi = await nami.enable();
+        /* DEBUG */ console.log("show L.WalletApi enabled", namiApi);
+        const balance = await namiApi.getBalance();
+        console.log("wallet balance: ", balance);
+        const pkh = await namiApi.getChangeAddress();
+        console.log("change address:", pkh);
         const lucid = await L.Lucid.new(
             new L.Blockfrost(blockfrost.url, blockfrost.id),
             "Preview"
@@ -47,9 +53,26 @@ async function connectToNami() {
         /* DEBUG */ console.log("show lucid promise object details");
         /* DEBUG */ console.log(lucid);
         /* DEBUG */ console.log('show lucid active');
-        lucid.selectWallet(api);
+        lucid.selectWallet(namiApi);
         return lucid;
     }
+}
+
+/**
+ * Loads the panel that contains wallet .
+ */
+async function loadWalletDetails(wallet) {
+    const W = window;
+    const { pkh: pkh, balance: balance } = await Utils.queryWalletDetails(wallet);
+
+    const pkhNode = W.document.getElementById('pkhNode');
+    Utils.removeChildren(pkhNode);
+    pkhNode.appendChild(W.document.createTextNode(pkh));
+
+    const balanceNode = W.document.getElementById('balanceNode');
+    const ada = Number(balance) / 1_000_000;
+    Utils.removeChildren(balanceNode);
+    balanceNode.appendChild(document.createTextNode(ada));
 }
 
 /**
@@ -72,23 +95,6 @@ async function loadVestingUTxOsTable(contractAddr, Datum) {
         Utils.addCell(tr, x.utxo.assets.lovelace);
         Utils.addCell(tr, new Date(Number(x.datum.deadline)));
     }
-}
-
-/**
- * Loads the panel that contains wallet .
- */
-async function loadWalletDetails(wallet) {
-    const W = window;
-    const { pkh: pkh, balance: balance } = await Utils.queryWalletDetails(wallet);
-    
-    const pkhNode = W.document.getElementById('pkhNode');
-    Utils.removeChildren(pkhNode);
-    pkhNode.appendChild(W.document.createTextNode(pkh));
-
-    const balanceNode = W.document.getElementById('balanceNode');
-    const ada = Number(balance) / 1_000_000;
-    Utils.removeChildren(balanceNode);
-    balanceNode.appendChild(document.createTextNode(ada));
 }
 
 /**
