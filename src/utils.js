@@ -9,8 +9,8 @@ export async function queryWalletDetails(wallet) {
     const balance = utxos.reduce((acc, utxo) => acc + utxo.assets.lovelace, 0n);
 
     return {
-        cardanoPKH: pkh,
-        cardanoBalance: balance,
+        pkh: pkh,
+        balance: balance,
     };
 }
 
@@ -58,10 +58,12 @@ async function submitCardanoTx(signedTx) {
 export async function signAndSubmitCardanoTx(tx) {
     try {
         const signedTx = await tx.sign().complete();
+        // console.log("show signedTx object", signedTx);
         await submitCardanoTx(signedTx);
     } catch (err) {
         alert(`Cardano transaction:\ninfo: ${err.info}\nmessage: ${err.message}`);
         throw (err);
+        //return nothing;
     }
 }
 
