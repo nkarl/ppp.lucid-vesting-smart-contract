@@ -31,30 +31,19 @@ const VestingDatum = L.Data.Object({
 /**
  * NOTE: Connects the Nami wallet.
  */
-async function connectToNami() {
-    const W = window;
-    const nami = W.cardano.nami;
+async function connectNami() {
+    const nami = window.cardano.nami;
     /* DEBUG */ console.log("show nami API object", nami)
-    if (!nami) {
+    if (nami === undefined) {
         alert("The Nami wallet is not found. Consider installing the Chrome extension.");
-        setTimeout(connectToNami);
+        setTimeout(connectNami);
         //throw new Error ("No Nami wallet found.");
     } else {
         const namiApi = await nami.enable();
-        /* DEBUG */ console.log("show L.WalletApi enabled", namiApi);
-        const balance = await namiApi.getBalance();
-        console.log("wallet balance: ", balance);
-        const pkh = await namiApi.getChangeAddress();
-        console.log("change address:", pkh);
-        const lucid = await L.Lucid.new(
+        return await L.Lucid.new(
             new L.Blockfrost(blockfrost.url, blockfrost.id),
             "Preview"
-        );
-        /* DEBUG */ console.log("show lucid promise object details");
-        /* DEBUG */ console.log(lucid);
-        /* DEBUG */ console.log('show lucid active');
-        lucid.selectWallet(namiApi);
-        return lucid;
+        ).then(a => a.selectWallet(namiApi));
     }
 }
 
@@ -62,32 +51,31 @@ async function connectToNami() {
  * Loads the panel that contains wallet .
  */
 async function loadWalletDetails(wallet) {
-    const W = window;
-    const { pkh: pkh, balance: balance } = await Utils.queryWalletDetails(wallet);
+    const { pkh: pkh, balance: balance } =
+        await Utils.queryWalletDetails(wallet);
 
-    const pkhNode = W.document.getElementById('pkhNode');
-    Utils.removeChildren(pkhNode);
-    pkhNode.appendChild(W.document.createTextNode(pkh));
+    const nodePKH = document.getElementById('cardanoPKH');
+    Utils.removeChildren(nodePKH);
+    nodePKH.appendChild(document.createTextNode(pkh));
 
-    const balanceNode = W.document.getElementById('balanceNode');
+    const nodeBalance = document.getElementById('cardanoBalance');
     const ada = Number(balance) / 1_000_000;
-    Utils.removeChildren(balanceNode);
-    balanceNode.appendChild(document.createTextNode(ada));
+    Utils.removeChildren(nodeBalance);
+    nodeBalance.appendChild(document.createTextNode(ada));
 }
 
 /**
  * Loads the panel that contains vesting Tx at the contract's address.
  */
 async function loadVestingUTxOsTable(contractAddr, Datum) {
-    const W = window;
     const vestingUTxOs = await Utils.getVestingUTxOs(contractAddr, Datum);
 
-    const vestingUTxOsTable = W.document.getElementById('vestingUTxOsTable');
+    const vestingUTxOsTable = window.document.getElementById('vestingUTxOsTable');
     Utils.removeChildren(vestingUTxOsTable);
 
     // generates the UTxOs table for the Tx at that contract address.
     for (const x of vestingUTxOs) {
-        const tr = W.document.createElement('tr');
+        const tr = window.document.createElement('tr');
         vestingUTxOsTable.appendChild(tr);
 
         Utils.addCell(tr, x.utxo.txHash + '#' + x.utxo.outputIndex, true);
@@ -101,14 +89,13 @@ async function loadVestingUTxOsTable(contractAddr, Datum) {
  * NOTE: VESTING
  */
 async function onVest() {
-    const W = window;
-    const nodeStakeholder = W.document.getElementById('vestStakeholderText');
+    const nodeStakeholder = window.document.getElementById('vestStakeholderText');
     const stakeholder = nodeStakeholder.value;
     // console.log(stakeholder);
-    const nodeAmount = W.document.getElementById('vestAmountText');
+    const nodeAmount = window.document.getElementById('vestAmountText');
     const amount = BigInt(parseInt(nodeAmount.value));
     // console.log(amount);
-    const nodeDeadline = W.document.getElementById('vestDeadlineText');
+    const nodeDeadline = window.document.getElementById('vestDeadlineText');
     const deadline = BigInt(Date.parse(nodeDeadline.value));
     // console.log(deadline);
 
@@ -138,10 +125,9 @@ async function onVest() {
  * NOTE: CLAIMING
  */
 async function onClaim() {
-    const W = window;
     const cardanoPKH = await Utils.getCardanoPKH(wallet);
 
-    const nodeRef = W.document.getElementById('claimReferenceText');
+    const nodeRef = window.document.getElementById('claimReferenceText');
     const refTx = nodeRef.value;
 
     const utxo = await Utils.findUTxO(refTx, vestingAddress, VestingDatum);
@@ -168,12 +154,12 @@ async function onClaim() {
 /**
  * NOTE: App Run.
  */
-const lucid = await connectToNami();
+window.lucid = await connectNami();
 // console.log("show window.lucid object with Nami wallet enabled");
 // console.log(window.lucid);
 
 const wallet = lucid.wallet;
-const vestingAddress = lucid.utils.validatorToAddress(vestingScript);
+const vestingAddress = window.lucid.utils.validatorToAddress(vestingScript);
 
 await loadWalletDetails(wallet);
 await loadVestingUTxOsTable(vestingAddress, VestingDatum);
