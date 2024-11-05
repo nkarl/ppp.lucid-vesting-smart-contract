@@ -28,7 +28,7 @@ export async function getCardanoPKH(wallet) {
  * NOTE: Smart Contract actions
  */
 export async function getVestingUTxOs(address, Datum) {
-    const utxos = await lucid.utxosAt(address);
+    const utxos = await window.lucid.utxosAt(address);
     /* DEBUG */ console.log("show detailed utxos from the contract addr");
     /* DEBUG */ console.log(utxos);
     let res = [];
@@ -60,12 +60,12 @@ async function submitCardanoTx(signedTx) {
 export async function signAndSubmitCardanoTx(tx) {
     try {
         const signedTx = await tx.sign().complete();
-        // console.log("show signedTx object", signedTx);
+        //// console.log("show signedTx object", signedTx);
         await submitCardanoTx(signedTx);
     } catch (err) {
         alert(`Cardano transaction:\ninfo: ${err.info}\nmessage: ${err.message}`);
         throw (err);
-        //return nothing;
+        ////return nothing;
     }
 }
 
@@ -92,36 +92,36 @@ export function removeChildren(node) {
 }
 
 export function addCell(tr, content, copyEnabled = false) {
-    const td = document.createElement('td');
+    const td = window.document.createElement('td');
     tr.appendChild(td);
 
     if (copyEnabled) {
-        const node = document.createElement("p");
+        const node = window.document.createElement("p");
         td.appendChild(node);
         const uid = "uid_" + String(Math.random()).slice(2);
         node.setAttribute("id", uid);
 
-        node.appendChild(document.createTextNode(content));
+        node.appendChild(window.document.createTextNode(content));
         node.addEventListener(
             "click",
-            () => navigator.clipboard.writeText(document.getElementById(uid).firstChild.textContent)
+            () => navigator.clipboard.writeText(window.document.getElementById(uid).firstChild.textContent)
         );
     } else {
-        td.appendChild(document.createTextNode(content));
+        td.appendChild(window.document.createTextNode(content));
     }
 }
 
 function addTxLinkToTable(href, txIdText) {
-    const txTable = document.getElementById("completedTxTable");
+    const txTable = window.document.getElementById("completedTxTable");
 
-    const tr = document.createElement('tr');
+    const tr = window.document.createElement('tr');
     txTable.appendChild(tr);
-    const td = document.createElement('td');
+    const td = window.document.createElement('td');
     tr.appendChild(td);
-    const a = document.createElement('a');
+    const a = window.document.createElement('a');
     td.appendChild(a);
 
     a.setAttribute('href', href);
     a.setAttribute('target', '_blank');
-    a.appendChild(document.createTextNode(txIdText));
+    a.appendChild(window.document.createTextNode(txIdText));
 }

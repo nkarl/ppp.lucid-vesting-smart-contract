@@ -54,14 +54,14 @@ async function loadWalletDetails(wallet) {
     const { pkh: pkh, balance: balance } =
         await Utils.queryWalletDetails(wallet);
 
-    const nodePKH = document.getElementById('cardanoPKH');
+    const nodePKH = window.document.getElementById('cardanoPKH');
     Utils.removeChildren(nodePKH);
-    nodePKH.appendChild(document.createTextNode(pkh));
+    nodePKH.appendChild(window.document.createTextNode(pkh));
 
-    const nodeBalance = document.getElementById('cardanoBalance');
+    const nodeBalance = window.document.getElementById('cardanoBalance');
     const ada = Number(balance) / 1_000_000;
     Utils.removeChildren(nodeBalance);
-    nodeBalance.appendChild(document.createTextNode(ada));
+    nodeBalance.appendChild(window.document.createTextNode(ada));
 }
 
 /**
@@ -167,14 +167,14 @@ await loadVestingUTxOsTable(vestingAddress, VestingDatum);
 /**
  * NOTE: Additional event listeners.
  */
-document
+window.document
     .getElementById("vestButton")
     .addEventListener("click", onVest);
-document
+window.document
     .getElementById("claimButton")
     .addEventListener("click", onClaim);
-document
+window.document
     .getElementById("vestDeadlineText")
     .addEventListener("change",
-        () => document.getElementById('vestDeadlineText').style.color = "black");
-//document.getElementById('cardanoPKHButton').addEventListener("click", () => onCopy("cardanoPKH"));
+        () => window.document.getElementById('vestDeadlineText').style.color = "black");
+//window.document.getElementById('cardanoPKHButton').addEventListener("click", () => onCopy("cardanoPKH"));
